@@ -32,6 +32,7 @@ class UserBase(BaseModel):
     profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
     linkedin_profile_url: Optional[str] = Field(None, example="https://linkedin.com/in/johndoe")
     github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
+    email_verified: bool = Field(default=False, example=False)  # New field added
 
     _validate_urls = validator('profile_picture_url', 'linkedin_profile_url', 'github_profile_url', pre=True, allow_reuse=True)(validate_url)
 
@@ -61,6 +62,7 @@ class UserUpdate(UserBase):
     profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
     linkedin_profile_url: Optional[str] = Field(None, example="https://linkedin.com/in/johndoe")
     github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
+    email_verified: Optional[bool] = Field(None, example=True)  # New field added for updates
 
     @root_validator(pre=True)
     def check_at_least_one_value(cls, values):
@@ -71,10 +73,7 @@ class UserUpdate(UserBase):
 class UserResponse(UserBase):
     id: uuid.UUID = Field(..., example=uuid.uuid4())
     role: UserRole = Field(default=UserRole.AUTHENTICATED, example="AUTHENTICATED")
-    email: EmailStr = Field(..., example="john.doe@example.com")
-    nickname: Optional[str] = Field(None, min_length=3, pattern=r'^[\w-]+$', example=generate_nickname())
-    role: UserRole = Field(default=UserRole.AUTHENTICATED, example="AUTHENTICATED")
-    is_professional: Optional[bool] = Field(default=False, example=True)
+    email_verified: bool = Field(default=False, example=False)  # Ensuring it's present in response
 
 class LoginRequest(BaseModel):
     email: EmailStr = Field(..., example="john.doe@example.com")

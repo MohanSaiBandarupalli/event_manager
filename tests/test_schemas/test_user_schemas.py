@@ -11,6 +11,15 @@ def test_user_base_valid(user_base_data):
     assert user.email == user_base_data["email"]
     assert user.first_name == user_base_data["first_name"]
 
+def test_user_base_email_verified_default(user_base_data):
+    user = UserBase(**user_base_data)
+    assert user.email_verified is False
+
+def test_user_base_email_verified_set(user_base_data):
+    user_base_data["email_verified"] = True
+    user = UserBase(**user_base_data)
+    assert user.email_verified is True
+
 # Tests for UserCreate
 def test_user_create_valid(user_create_data):
     user = UserCreate(**user_create_data)
@@ -30,6 +39,11 @@ def test_user_update_valid(user_update_data):
     assert user.email == user_update_data["email"]
     assert user.bio == user_update_data["bio"]
 
+def test_user_update_email_verified(user_update_data):
+    user_update_data["email_verified"] = True
+    user = UserUpdate(**user_update_data)
+    assert user.email_verified is True
+
 def test_user_update_no_values():
     with pytest.raises(ValidationError) as exc_info:
         UserUpdate()
@@ -43,10 +57,12 @@ def test_user_response_valid():
         "nickname": "response_user",
         "role": "AUTHENTICATED",
         "is_professional": True,
+        "email_verified": True,
     }
     user = UserResponse(**user_response_data)
     assert user.id == user_response_data["id"]
     assert user.nickname == user_response_data["nickname"]
+    assert user.email_verified is True
 
 # Tests for LoginRequest
 def test_login_request_valid():
