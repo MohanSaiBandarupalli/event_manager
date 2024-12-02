@@ -17,9 +17,10 @@ class UserRole(str, Enum):
 def validate_url(url: Optional[str]) -> Optional[str]:
     if url is None:
         return url
-    url_regex = r'^https?:\/\/[^\s/$.?#].[^\s]*$'
+    # Stricter validation for URLs with allowed image extensions
+    url_regex = r'^https?:\/\/[^\s/$.?#].[^\s]*(\.jpg|\.jpeg|\.png|\.gif|\.bmp)$'
     if not re.match(url_regex, url):
-        raise ValueError('Invalid URL format')
+        raise ValueError('Invalid URL format or unsupported image extension')
     return url
 
 class UserBase(BaseModel):
@@ -41,7 +42,6 @@ class UserCreate(UserBase):
     email: EmailStr = Field(..., example="john.doe@example.com")
     password: str = Field(..., example="Secure*1234")
 
-    # Add validation for nickname
     @validator('nickname', always=True)
     def validate_nickname(cls, value):
         if value is None:

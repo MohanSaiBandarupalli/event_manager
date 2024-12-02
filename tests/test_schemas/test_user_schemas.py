@@ -5,44 +5,35 @@ from uuid import uuid4
 from app.schemas.user_schemas import UserBase, UserCreate, UserUpdate, UserResponse, LoginRequest
 
 # Tests for UserBase
-def test_user_base_valid():
-    user_base_data = {
-        "email": "john.doe@example.com",
-        "nickname": "john_doe123",
-        "first_name": "John",
-        "last_name": "Doe",
-        "bio": "I am a software engineer with over 5 years of experience.",
-        "profile_picture_url": "https://example.com/profile_pictures/john_doe.jpg",
-    }
+def test_user_base_valid(user_base_data):
     user = UserBase(**user_base_data)
     assert user.nickname == user_base_data["nickname"]
     assert user.email == user_base_data["email"]
+    assert user.first_name == user_base_data["first_name"]
 
 # Tests for UserCreate
-def test_user_create_valid():
-    user_create_data = {
-        "email": "john.doe@example.com",
-        "password": "SecurePassword123!",
-        "nickname": "john_doe123",
-    }
+def test_user_create_valid(user_create_data):
     user = UserCreate(**user_create_data)
     assert user.nickname == user_create_data["nickname"]
     assert user.password == user_create_data["password"]
 
+def test_user_create_missing_nickname(user_base_data):
+    user_create_data = {**user_base_data, "password": "SecurePassword123!"}
+    user_create_data.pop("nickname")
+    with pytest.raises(ValidationError) as exc_info:
+        UserCreate(**user_create_data)
+    assert "Nickname is required." in str(exc_info.value)
+
 # Tests for UserUpdate
-def test_user_update_valid():
-    user_update_data = {
-        "email": "john.doe.new@example.com",
-        "nickname": "john_updated",
-        "first_name": "John",
-        "last_name": "Doe",
-        "bio": "I specialize in backend development with Python and Node.js.",
-        "profile_picture_url": "https://example.com/profile_pictures/john_doe_updated.jpg",
-    }
-    user_update = UserUpdate(**user_update_data)
-    assert user_update.email == user_update_data["email"]
-    assert user_update.nickname == user_update_data["nickname"]
-    assert user_update.first_name == user_update_data["first_name"]
+def test_user_update_valid(user_update_data):
+    user = UserUpdate(**user_update_data)
+    assert user.email == user_update_data["email"]
+    assert user.bio == user_update_data["bio"]
+
+def test_user_update_no_values():
+    with pytest.raises(ValidationError) as exc_info:
+        UserUpdate()
+    assert "At least one field must be provided for update" in str(exc_info.value)
 
 # Tests for UserResponse
 def test_user_response_valid():
@@ -51,8 +42,7 @@ def test_user_response_valid():
         "email": "test@example.com",
         "nickname": "response_user",
         "role": "AUTHENTICATED",
-        "created_at": datetime.now(),
-        "last_login_at": datetime.now(),
+        "is_professional": True,
     }
     user = UserResponse(**user_response_data)
     assert user.id == user_response_data["id"]
@@ -69,17 +59,13 @@ def test_login_request_valid():
     assert login.password == login_request_data["password"]
 
 def test_login_request_missing_email():
-    login_request_data = {
-        "password": "SecurePassword123!",
-    }
+    login_request_data = {"password": "SecurePassword123!"}
     with pytest.raises(ValidationError) as exc_info:
         LoginRequest(**login_request_data)
     assert "email" in str(exc_info.value)
 
 def test_login_request_missing_password():
-    login_request_data = {
-        "email": "john.doe@example.com",
-    }
+    login_request_data = {"email": "john.doe@example.com"}
     with pytest.raises(ValidationError) as exc_info:
         LoginRequest(**login_request_data)
     assert "password" in str(exc_info.value)
@@ -91,7 +77,6 @@ def test_login_request_invalid_password():
     }
     with pytest.raises(ValidationError) as exc_info:
         LoginRequest(**login_request_data)
-    # Corrected the error message to match the actual Pydantic validation output
     assert "String should have at least 8 characters" in str(exc_info.value)
 
 # Parametrized tests for nickname validation
@@ -142,5 +127,4 @@ def test_user_base_invalid_email():
     }
     with pytest.raises(ValidationError) as exc_info:
         UserBase(**user_base_data_invalid)
-
     assert "value is not a valid email address" in str(exc_info.value)
