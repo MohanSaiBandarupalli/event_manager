@@ -77,8 +77,14 @@ class UserResponse(UserBase):
     is_professional: Optional[bool] = Field(default=False, example=True)
 
 class LoginRequest(BaseModel):
-    email: str = Field(..., example="john.doe@example.com")
-    password: str = Field(..., example="Secure*1234")
+    email: EmailStr = Field(..., example="john.doe@example.com")
+    password: str = Field(..., min_length=8, example="Secure*1234")
+
+    @validator('password')
+    def validate_password(cls, value):
+        if len(value) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+        return value
 
 class ErrorResponse(BaseModel):
     error: str = Field(..., example="Not Found")
