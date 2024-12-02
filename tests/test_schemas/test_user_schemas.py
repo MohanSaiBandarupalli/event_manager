@@ -1,4 +1,3 @@
-from builtins import str
 import pytest
 from pydantic import ValidationError
 from datetime import datetime
@@ -69,7 +68,33 @@ def test_login_request_valid():
     assert login.email == login_request_data["email"]
     assert login.password == login_request_data["password"]
 
-# Parametrized tests for nickname and email validation
+def test_login_request_missing_email():
+    login_request_data = {
+        "password": "SecurePassword123!",
+    }
+    with pytest.raises(ValidationError) as exc_info:
+        LoginRequest(**login_request_data)
+    assert "email" in str(exc_info.value)
+
+def test_login_request_missing_password():
+    login_request_data = {
+        "email": "john.doe@example.com",
+    }
+    with pytest.raises(ValidationError) as exc_info:
+        LoginRequest(**login_request_data)
+    assert "password" in str(exc_info.value)
+
+def test_login_request_invalid_password():
+    login_request_data = {
+        "email": "john.doe@example.com",
+        "password": "short",
+    }
+    with pytest.raises(ValidationError) as exc_info:
+        LoginRequest(**login_request_data)
+    # Corrected the error message to match the actual Pydantic validation output
+    assert "String should have at least 8 characters" in str(exc_info.value)
+
+# Parametrized tests for nickname validation
 @pytest.mark.parametrize("nickname", ["test_user", "test-user", "testuser123", "123test"])
 def test_user_base_nickname_valid(nickname):
     user_base_data = {
