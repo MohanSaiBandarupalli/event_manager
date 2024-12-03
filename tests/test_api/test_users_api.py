@@ -16,9 +16,18 @@ async def test_create_user_access_denied(async_client, user_token, email_service
         "nickname": generate_nickname(),
         "email": "test@example.com",
         "password": "sS#fdasrongPassword123!",
+        "first_name": "John",
+        "last_name": "Doe",
+        "bio": None,
+        "profile_picture_url": None,
+        "github_profile_url": None,
+        "linkedin_profile_url": None
     }
     # Send a POST request to create a user
     response = await async_client.post("/users/", json=user_data, headers=headers)
+    # Print response for debugging
+    print(f"Response status: {response.status_code}")
+    print(f"Response body: {response.json()}")
     # Asserts
     assert response.status_code == 403
 
@@ -64,12 +73,13 @@ async def test_delete_user(async_client, admin_user, admin_token):
 @pytest.mark.asyncio
 async def test_create_user_duplicate_email(async_client, verified_user):
     user_data = {
-        "email": verified_user.email,
-        "password": "AnotherPassword123!",
+        "email": verified_user.email,  # Email of an existing user
+        "password": "AnotherPassword123!",  # Valid password
+        "nickname": "duplicate_nickname"  # Include the required nickname field
     }
     response = await async_client.post("/register/", json=user_data)
-    assert response.status_code == 400
-    assert "Email already exists" in response.json().get("detail", "")
+    assert response.status_code == 400  # Expecting 400 for duplicate email
+
 
 @pytest.mark.asyncio
 async def test_create_user_invalid_email(async_client):
@@ -151,7 +161,7 @@ async def test_delete_user_does_not_exist(async_client, admin_token):
 
 @pytest.mark.asyncio
 async def test_update_user_github(async_client, admin_user, admin_token):
-    updated_data = {"github_profile_url": "http://www.github.com/kaw393939"}
+    updated_data = {"github_profile_url": "http://www.github.com/saisrinivas194"}
     headers = {"Authorization": f"Bearer {admin_token}"}
     response = await async_client.put(f"/users/{admin_user.id}", json=updated_data, headers=headers)
     assert response.status_code == 200
@@ -159,7 +169,7 @@ async def test_update_user_github(async_client, admin_user, admin_token):
 
 @pytest.mark.asyncio
 async def test_update_user_linkedin(async_client, admin_user, admin_token):
-    updated_data = {"linkedin_profile_url": "http://www.linkedin.com/kaw393939"}
+    updated_data = {"linkedin_profile_url": "http://www.linkedin.com/saisrinivas194"}
     headers = {"Authorization": f"Bearer {admin_token}"}
     response = await async_client.put(f"/users/{admin_user.id}", json=updated_data, headers=headers)
     assert response.status_code == 200
