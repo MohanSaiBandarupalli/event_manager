@@ -91,7 +91,7 @@ jobs:
           push: true
           tags: bms6700/hw10:${{ github.sha }} # Uses the Git SHA for tagging
           platforms: linux/amd64,linux/arm64 # Multi-platform support
-          cache-from: type=registry,ref=kaw393939/wis_club_api:cache
+          cache-from: type=registry,ref=bms6700/hw10:cache
           cache-to: type=inline,mode=max
           
       - name: Scan the Docker image
