@@ -4,9 +4,10 @@ from builtins import len
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.future import select
-
+import uuid
 from app.models.user_model import User, UserRole
 from app.utils.security import verify_password
+from app.database import Base
 
 @pytest.mark.asyncio
 async def test_user_creation(db_session, verified_user):
@@ -62,3 +63,27 @@ async def test_update_professional_status(db_session, verified_user):
     updated_user = result.scalars().first()
     assert updated_user.is_professional
     assert updated_user.professional_status_updated_at is not None
+
+@pytest.fixture(scope="function", autouse=True)
+async def clear_database(db_session):
+    """Cleans up database tables after each test."""
+    yield
+    for table in reversed(Base.metadata.sorted_tables):
+        await db_session.execute(table.delete())
+    await db_session.commit()
+
+@pytest.fixture
+async def users_with_same_role_50_users(db_session):
+    """Creates 50 users with unique nicknames."""
+    users = []
+    for i in range(50):
+        user = User(
+            email=f"user{i}@example.com",
+            nickname=f"user_{uuid.uuid4().hex[:8]}",
+            hashed_password="hashed_password",
+            role=UserRole.AUTHENTICATED
+        )
+        db_session.add(user)
+        users.append(user)
+    await db_session.commit()
+    return users
