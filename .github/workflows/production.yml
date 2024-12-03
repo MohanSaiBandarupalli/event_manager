@@ -45,6 +45,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
+      - name: Reset Database
+        run: |
+          psql -h localhost -U user -d myappdb -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+          echo "Database reset complete."
+        env:
+          PGPASSWORD: password
+          
       - name: Run tests with Pytest
         env:
           DATABASE_URL: postgresql+asyncpg://user:password@localhost:5432/myappdb  # Configure the DATABASE_URL environment variable for tests
